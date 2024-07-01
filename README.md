@@ -14,26 +14,27 @@ The following datasets are used for this exploration:
 
 ## Instructions
 
-Perform the following steps to execute on your platform, using tflite as example.
-
-Replace "tflite" with other targets when applicable.
+Perform the following steps to install the viewers and datasets on your platform.
 
 1. Clone repository
 
-    $ git clone https://github.com/AlbertaBeef/aslr_exploration
+'
 
+    $ git clone https://github.com/AlbertaBeef/aslr_exploration
     $ cd alsr_exploration
    
 
 3. Download Kaggle datasets (using Kaggle API, or directory from above URLs)
 
+'
+
     $ kaggle competitions download -c asl-signs
-
     $ kaggle competitions download -c asl-fingerspelling
-   
+  
 
-4. Extract Kaggle datasets
+5. Extract Kaggle datasets
 
+'
     For asl-signs dataset :
 
     $ mkdir asl-signs
@@ -44,7 +45,7 @@ Replace "tflite" with other targets when applicable.
    
     $ cd ..
 
-
+'
     For asl-fingerspelling dataset :
 
     $ mkdir asl-fingerspelling
@@ -56,20 +57,23 @@ Replace "tflite" with other targets when applicable.
     $ cd ..
    
 
-5. Launch viewer scripts
+6. Launch viewer scripts
 
+'
     For asl-signs dataset :
 
     $ python3 asl_signs_viewer.py
 
 ![](images/asl_signs_viewer_animation.gif)
 
+'
     For asl-fingerspelling dataset :
 
     $ python3 asl_fingerspelling_viewer.py
 
 ![](images/asl_fingerspelling_viewer_animation.gif)
 
+'
     For live video :
 
     $ python3 mediapipe_holistic_viewer.py
