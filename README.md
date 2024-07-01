@@ -23,31 +23,40 @@ Replace "tflite" with other targets when applicable.
     $ git clone https://github.com/AlbertaBeef/aslr_exploration
 
     $ cd alsr_exploration
+   
 
-2. Download Kaggle datasets (using Kaggle API, or directory from above URLs)
+3. Download Kaggle datasets (using Kaggle API, or directory from above URLs)
 
     $ kaggle competitions download -c asl-signs
 
     $ kaggle competitions download -c asl-fingerspelling
+   
 
-3. Extract Kaggle datasets
+4. Extract Kaggle datasets
 
     For asl-signs dataset :
 
     $ mkdir asl-signs
-	$ cd asl-signs
-	$ unzip ../asl-signs.zip
-	$ cd ..
+   
+    $ cd asl-signs
+   
+    $ unzip ../asl-signs.zip
+   
+    $ cd ..
+
 
     For asl-fingerspelling dataset :
 
-
     $ mkdir asl-fingerspelling
-	$ cd asl-fingerspelling
-	$ unzip ../asl-fingerspelling.zip
-	$ cd ..
+   
+    $ cd asl-fingerspelling
+   
+    $ unzip ../asl-fingerspelling.zip
+   
+    $ cd ..
+   
 
-4. Launch viewer scripts
+5. Launch viewer scripts
 
     For asl-signs dataset :
 
@@ -55,9 +64,9 @@ Replace "tflite" with other targets when applicable.
 
 ![](images/asl_signs_viewer_animation.gif)
 
-    For asl-signs dataset :
+    For asl-fingerspelling dataset :
 
-    $ python3 asl_signs_viewer.py
+    $ python3 asl_fingerspelling_viewer.py
 
 ![](images/asl_fingerspelling_viewer_animation.gif)
 
