@@ -38,22 +38,16 @@ Perform the following steps to install the viewers and datasets on your platform
     For asl-signs dataset :
 
     $ mkdir asl-signs
-   
     $ cd asl-signs
-   
     $ unzip ../asl-signs.zip
-   
     $ cd ..
 
 '
     For asl-fingerspelling dataset :
 
     $ mkdir asl-fingerspelling
-   
     $ cd asl-fingerspelling
-   
     $ unzip ../asl-fingerspelling.zip
-   
     $ cd ..
    
 
