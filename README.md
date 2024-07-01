@@ -2,6 +2,8 @@
 
 Python code for exploration of datasets for ASL recognition.
 
+![](images/mediapipe_holistic_viewer_animation_02.gif)
+
 ## Kaggle Datasets
 
 The following datasets are used for this exploration:
@@ -72,7 +74,7 @@ Perform the following steps to install the viewers and datasets on your platform
 
     $ python3 mediapipe_holistic_viewer.py
 
-![](images/mediapipe_holistic_viewer_animation.gif)
+![](images/mediapipe_holistic_viewer_animation_01.gif)
 
 
 
