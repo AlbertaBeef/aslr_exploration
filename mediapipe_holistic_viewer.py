@@ -116,16 +116,22 @@ def create_landmark_tframe( pose_landmarks, face_landmarks, left_hand_landmarks,
         larm_xyz = pose_xyz[[L-522 for L in LARMS],:]
         rarm_xyz = pose_xyz[[R-522 for R in RARMS],:]
         
+        if True:
+            print("")
+            print(f" pose min xyz = {np.min( pose_xyz, axis=0)}, max xyz = {np.max( pose_xyz, axis=0)}, mean xyz = {np.mean( pose_xyz, axis=0)}")
+            print(f" face min xyz = {np.min( face_xyz, axis=0)}, max xyz = {np.max( face_xyz, axis=0)}, mean xyz = {np.mean( face_xyz, axis=0)}")
+            print(f"lhand min xyz = {np.min(lhand_xyz, axis=0)}, max xyz = {np.max(lhand_xyz, axis=0)}, mean xyz = {np.mean(lhand_xyz, axis=0)}")
+            print(f"rhand min xyz = {np.min(rhand_xyz, axis=0)}, max xyz = {np.max(rhand_xyz, axis=0)}, mean xyz = {np.mean(rhand_xyz, axis=0)}")
         if False:
             print("")
-            print("lips  xy/z min/max : ",lips_xyz[:,0:2].min(),lips_xyz[:,0:2].max(),lips_xyz[:,2].min(),lips_xyz[:,2].max())
-            print("nose  xy/z min/max : ",nose_xyz[:,0:2].min(),nose_xyz[:,0:2].max(),nose_xyz[:,2].min(),nose_xyz[:,2].max())
-            print("leye  xy/z min/max : ",leye_xyz[:,0:2].min(),leye_xyz[:,0:2].max(),leye_xyz[:,2].min(),leye_xyz[:,2].max())
-            print("reye  xy/z min/max : ",reye_xyz[:,0:2].min(),reye_xyz[:,0:2].max(),reye_xyz[:,2].min(),reye_xyz[:,2].max())
-            print("larm  xy/z min/max : ",larm_xyz[:,0:2].min(),larm_xyz[:,0:2].max(),larm_xyz[:,2].min(),larm_xyz[:,2].max())
-            print("rarm  xy/z min/max : ",rarm_xyz[:,0:2].min(),rarm_xyz[:,0:2].max(),rarm_xyz[:,2].min(),rarm_xyz[:,2].max())
-            print("lhand xy/z min/max : ",lhand_xyz[:,0:2].min(),lhand_xyz[:,0:2].max(),lhand_xyz[:,2].min(),lhand_xyz[:,2].max())
-            print("rhand xy/z min/max : ",rhand_xyz[:,0:2].min(),rhand_xyz[:,0:2].max(),rhand_xyz[:,2].min(),rhand_xyz[:,2].max())
+            print(f" lips min xyz = {np.min( lips_xyz, axis=0)}, max xyz = {np.max( lips_xyz, axis=0)}, mean xyz = {np.mean( lips_xyz, axis=0)}")
+            print(f" nose min xyz = {np.min( nose_xyz, axis=0)}, max xyz = {np.max( nose_xyz, axis=0)}, mean xyz = {np.mean( nose_xyz, axis=0)}")
+            print(f" leye min xyz = {np.min( leye_xyz, axis=0)}, max xyz = {np.max( leye_xyz, axis=0)}, mean xyz = {np.mean( leye_xyz, axis=0)}")
+            print(f" reye min xyz = {np.min( reye_xyz, axis=0)}, max xyz = {np.max( reye_xyz, axis=0)}, mean xyz = {np.mean( reye_xyz, axis=0)}")
+            print(f" larm min xyz = {np.min( larm_xyz, axis=0)}, max xyz = {np.max( larm_xyz, axis=0)}, mean xyz = {np.mean( larm_xyz, axis=0)}")
+            print(f" rarm min xyz = {np.min( rarm_xyz, axis=0)}, max xyz = {np.max( rarm_xyz, axis=0)}, mean xyz = {np.mean( rarm_xyz, axis=0)}")
+            print(f"lhand min xyz = {np.min(lhand_xyz, axis=0)}, max xyz = {np.max(lhand_xyz, axis=0)}, mean xyz = {np.mean(lhand_xyz, axis=0)}")
+            print(f"rhand min xyz = {np.min(rhand_xyz, axis=0)}, max xyz = {np.max(rhand_xyz, axis=0)}, mean xyz = {np.mean(rhand_xyz, axis=0)}")
         
         # POINT_LANDMARKS = LIP + LHAND + RHAND + NOSE + REYE + LEYE + LARMS + RARMS
         holistic_xyz = cv2.vconcat([lips_xyz,lhand_xyz,rhand_xyz,nose_xyz,reye_xyz,leye_xyz,larm_xyz,rarm_xyz])
