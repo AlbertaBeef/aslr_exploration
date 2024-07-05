@@ -333,28 +333,22 @@ for row in range(0,nb_rows):
         
         output = cv2.hconcat([image_landmarks,tframe])
         cv2.imshow('asl_fingerspelling_viewer',output)
-	
+
         #c = cv2.waitKey(100) # x1 time scale
         c = cv2.waitKey(50) # x2 times faster
-        #print(c)
-        if c == 99: #'c'
-        	break
-        if c == 110: #'n'
-        	break
-        if c == 113: #'q':
-        	break
+        if c == ord('c'):
+            break
+        if c == ord('n'):
+            break
+        if c == ord('q'):
+            break
 
-    if c == 99: #'c'
+    if c == ord('c'):
         continue
-    if c == 110: #'n'
+    if c == ord('n'):
         continue
-    if c == 113: #'q':
+    if c == ord('q'):
         break
 
-    # Fetch and show the data for right hand
-    #create_animation(np.array(hand_images)[:, 0])
-    #create_animation(np.array(images)[:, 0])
-
-
-    
-    
+# Cleanup windows
+cv2.destroyAllWindows()

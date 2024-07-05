@@ -23,7 +23,6 @@ from mediapipe.python.solutions.face_mesh_connections import FACEMESH_LIPS
 from mediapipe.python.solutions.face_mesh_connections import FACEMESH_NOSE
 from mediapipe.python.solutions.face_mesh_connections import FACEMESH_RIGHT_EYE
 
-
 # Top 130 landmarks
 #
 # Reference 1:
@@ -281,7 +280,7 @@ with mp_holistic.Holistic(min_detection_confidence=0.5, min_tracking_confidence=
 	
         image_landmarks = cv2.putText(image_landmarks, 'Live Feed', (10,50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0,255,0), 2, cv2.LINE_AA)                 
         image_landmarks = image_landmarks.astype(np.float64)/256.0
-        	
+	
         tframe = create_landmark_tframe( pose_landmarks, face_landmarks, left_hand_landmarks, right_hand_landmarks )
         tframe = cv2.resize(tframe,dsize=[TFRAME_WIDTH, TFRAME_HEIGHT])
 
@@ -295,9 +294,12 @@ with mp_holistic.Holistic(min_detection_confidence=0.5, min_tracking_confidence=
         output = cv2.hconcat([image_landmarks,tframe])
         cv2.imshow('mediapipe_holistic_viewer',output)
 
-        if cv2.waitKey(10) & 0xFF == ord('q'):
+        c = cv2.waitKey(10)
+        if c == ord('q'):
             break
 
+# Release camera
 cap.release()
-cv2.destroyAllWindows()
 
+# Cleanup windows
+cv2.destroyAllWindows()

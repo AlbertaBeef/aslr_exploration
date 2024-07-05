@@ -138,7 +138,6 @@ def create_landmark_tframe( pose_landmarks, face_landmarks, left_hand_landmarks,
             print(f" rarm min xyz = {np.min( rarm_xyz, axis=0)}, max xyz = {np.max( rarm_xyz, axis=0)}, mean xyz = {np.mean( rarm_xyz, axis=0)}")
             print(f"lhand min xyz = {np.min(lhand_xyz, axis=0)}, max xyz = {np.max(lhand_xyz, axis=0)}, mean xyz = {np.mean(lhand_xyz, axis=0)}")
             print(f"rhand min xyz = {np.min(rhand_xyz, axis=0)}, max xyz = {np.max(rhand_xyz, axis=0)}, mean xyz = {np.mean(rhand_xyz, axis=0)}")
-
         
         # POINT_LANDMARKS = LIP + LHAND + RHAND + NOSE + REYE + LEYE + LARMS + RARMS
         holistic_xyz = cv2.vconcat([lips_xyz,lhand_xyz,rhand_xyz,nose_xyz,reye_xyz,leye_xyz,larm_xyz,rarm_xyz])
@@ -333,25 +332,19 @@ for row in range(0,nb_samples):
 	
         c = cv2.waitKey(100) # x1 time scale
         #c = cv2.waitKey(50) # x2 times faster
-        #print(c)
-        if c == 99: #'c'
-        	break
-        if c == 110: #'n'
-        	break
-        if c == 113: #'q':
-        	break
+        if c == ord('c'):
+            break
+        if c == ord('n'):
+            break
+        if c == ord('q'):
+            break
 
-    if c == 99: #'c'
+    if c == ord('c'):
         continue
-    if c == 110: #'n'
+    if c == ord('n'):
         continue
-    if c == 113: #'q':
+    if c == ord('q'):
         break
 
-    # Fetch and show the data for right hand
-    #create_animation(np.array(hand_images)[:, 0])
-    #create_animation(np.array(images)[:, 0])
-
-
-    
-    
+# Cleanup windows
+cv2.destroyAllWindows()
