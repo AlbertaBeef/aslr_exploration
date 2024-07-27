@@ -159,67 +159,53 @@ cap.set(cv2.CAP_PROP_FRAME_HEIGHT,frame_height)
 #frame_height = int(round(cap.get(cv2.CAP_PROP_FRAME_HEIGHT)))
 print("[INFO] input : camera",input_video," (",frame_width,",",frame_height,")")
 
+IMAGE_WIDTH  = 640
+IMAGE_HEIGHT = 480
+
 # 1:1 aspect ratio
 #IMAGE_WIDTH  = NLANDMARKS*4
 #IMAGE_HEIGHT = NLANDMARKS*4
 
-# 4:3 aspect ratio
-IMAGE_WIDTH  = NLANDMARKS*3
-IMAGE_HEIGHT = NLANDMARKS*4
+# 3:4 aspect ratio
+#IMAGE_WIDTH  = NLANDMARKS*3
+#IMAGE_HEIGHT = NLANDMARKS*4
 
-# 16:9 aspect ratio
+# 9:16 aspect ratio
 #IMAGE_WIDTH  = 290
 #IMAGE_HEIGHT = NLANDMARKS*4
 
-TFRAME_WIDTH  = NLANDMARKS*4
-TFRAME_HEIGHT = NLANDMARKS*4
+#TFRAME_WIDTH  = NLANDMARKS*4
+#TFRAME_HEIGHT = NLANDMARKS*4
+TFRAME_WIDTH  = IMAGE_WIDTH
+TFRAME_HEIGHT = IMAGE_HEIGHT
 
-# Create camera intrinsics
-w = IMAGE_WIDTH
-h = IMAGE_HEIGHT
-fx= 416
-fy= 416
-cx= 0
-cy= 0
-intrinsic = o3d.camera.PinholeCameraIntrinsic(w, h, fx,fy, cx, cy)
-intrinsic.intrinsic_matrix = [[fx, 0, cx], [0, fy, cy], [0, 0, 1]]
-cam = o3d.camera.PinholeCameraParameters()
-cam.intrinsic = intrinsic
-cam.extrinsic = np.array([[0., 0., 0., 0.], [0., 0., 0., 0.], [0., 0., 0., 0.], [0., 0., 0., 1.]])
-#pcd = o3d.geometry.create_point_cloud_from_rgbd_image(rgbd_image, cam.intrinsic, cam.extrinsic)
+
 
 # Create an Open3D point cloud
-pose_landmarks_pcd = o3d.geometry.PointCloud()
-face_landmarks_pcd = o3d.geometry.PointCloud()
-lhand_landmarks_pcd = o3d.geometry.PointCloud()
-rhand_landmarks_pcd = o3d.geometry.PointCloud()
+holistic_landmarks_pcd = o3d.geometry.PointCloud()
+
+# Create an Open3D visualizer(s)
+vis_holistic = o3d.visualization.Visualizer()
+vis_holistic.create_window(window_name="MediaPipe Holistic pointcloud",width=640, height=480)
+
+vis_holistic.add_geometry(holistic_landmarks_pcd)
+#vis_holistic.run()
 
 use_zoffset = True
-denormalize_pointcloud = True
-view_pointcloud = 2
 print("[INFO] use_zoffset = ",use_zoffset)
-print("[INFO] denormalize_pointcloud = ",denormalize_pointcloud)
-print("[INFO] view_pointcloud (0=front, 1=top, 2=side) = ",view_pointcloud)
 
 def create_landmark_pointcloud( pose_landmarks, face_landmarks, left_hand_landmarks, right_hand_landmarks,
                                 use_zoffset=False, 
-                                view_pointcloud=2, # 0=front, 1=top, 2=side
                                 image_width=1.0, image_height=1.0 ):
-        pose_3d_points = []
-        pose_3d_colors = []
+        holistic_3d_points = []
+        holistic_3d_colors = []
         pose_face_zoffset = 0
         pose_lhand_zoffset = 0
         pose_rhand_zoffset = 0
         try:
             for landmark in pose_landmarks.landmark:
-                if view_pointcloud == 0:
-                    pose_3d_points.append((landmark.x * image_width, -landmark.y * image_height, -landmark.z * image_width))
-                if view_pointcloud == 1:
-                    pose_3d_points.append((landmark.x * image_width, +landmark.z * image_width, -landmark.y * image_height))
-                if view_pointcloud == 2:
-                    pose_3d_points.append((-landmark.z * image_width, -landmark.y * image_height, landmark.x * image_width))
-                pose_3d_colors.append((80/256.0,22/256.0,10/256.0))
-                #pose_3d_colors.append((10/256.0,22/256.0,80/256.0))
+                holistic_3d_points.append((landmark.x * image_width, -landmark.y * image_height, -landmark.z * image_width))
+                holistic_3d_colors.append((80/256.0,22/256.0,10/256.0))
             if use_zoffset == True:
                 #pose_face_zoffset = (pose_landmarks.landmark[10].z + pose_landmarks.landmark[9].z)/2 # mouth
                 pose_face_zoffset = (pose_landmarks.landmark[5].z + pose_landmarks.landmark[2].z)/2 # eyes
@@ -228,91 +214,38 @@ def create_landmark_pointcloud( pose_landmarks, face_landmarks, left_hand_landma
         except:
             pass
 
-        face_3d_points = []
-        face_3d_colors = []
         try:
             for landmark in face_landmarks.landmark:
-                if view_pointcloud == 0:
-                    face_3d_points.append((landmark.x * image_width, -landmark.y * image_height, -(landmark.z+pose_face_zoffset) * image_width))
-                if view_pointcloud == 1:
-                    face_3d_points.append((landmark.x * image_width, +(landmark.z+pose_face_zoffset) * image_width, -landmark.y * image_height))
-                if view_pointcloud == 2:
-                    face_3d_points.append((-(landmark.z+pose_face_zoffset) * image_width, -landmark.y * image_height, landmark.x * image_width))
-                face_3d_colors.append((80/256.0,110/256.0,10/256.0))
-                #face_3d_colors.append((10/256.0,110/256.0,80/256.0))
+                holistic_3d_points.append((landmark.x * image_width, -landmark.y * image_height, -(landmark.z+pose_face_zoffset) * image_width))
+                holistic_3d_colors.append((80/256.0,110/256.0,10/256.0))
+                #holistic_3d_colors.append((10/256.0,110/256.0,80/256.0))
         except:
             pass
 
-        lhand_3d_points = []
-        lhand_3d_colors = []
         try:
             for landmark in left_hand_landmarks.landmark:
-                if view_pointcloud == 0:
-                    lhand_3d_points.append((landmark.x * image_width, -landmark.y * image_height, -(landmark.z+pose_lhand_zoffset) * image_width))
-                if view_pointcloud == 1:
-                    lhand_3d_points.append((landmark.x * image_width, +(landmark.z+pose_lhand_zoffset) * image_width, -landmark.y * image_height))
-                if view_pointcloud == 2:
-                    lhand_3d_points.append((-(landmark.z+pose_lhand_zoffset) * image_width, -landmark.y * image_height, landmark.x * image_width))
-                lhand_3d_colors.append((245/256.0,117/256.0,66/256.0))
-                #lhand_3d_colors.append((66/256.0,117/256.0,245/256.0))
+                holistic_3d_points.append((landmark.x * image_width, -landmark.y * image_height, -(landmark.z+pose_lhand_zoffset) * image_width))
+                holistic_3d_colors.append((245/256.0,117/256.0,66/256.0))
+                #holistic_3d_colors.append((66/256.0,117/256.0,245/256.0))
         except:
             pass
 
-        rhand_3d_points = []
-        rhand_3d_colors = []
         try:
             for landmark in right_hand_landmarks.landmark:
-                if view_pointcloud == 0:
-                    rhand_3d_points.append((landmark.x * image_width, -landmark.y * image_height, -(landmark.z+pose_rhand_zoffset) * image_width))
-                if view_pointcloud == 1:
-                    rhand_3d_points.append((landmark.x * image_width, +(landmark.z+pose_rhand_zoffset) * image_width, -landmark.y * image_height))
-                if view_pointcloud == 2:
-                    rhand_3d_points.append((-(landmark.z+pose_rhand_zoffset) * image_width, -landmark.y * image_height, landmark.x * image_width))
-                rhand_3d_colors.append((245/256.0,117/256.0,66/256.0))
-                #rhand_3d_colors.append((66/256.0,117/256.0,245/256.0))
+                holistic_3d_points.append((landmark.x * image_width, -landmark.y * image_height, -(landmark.z+pose_rhand_zoffset) * image_width))
+                holistic_3d_colors.append((245/256.0,117/256.0,66/256.0))
+                #holistic_3d_colors.append((66/256.0,117/256.0,245/256.0))
         except:
             pass
         
         # Create Open3D point cloud
-        #pose_landmarks_pcd = o3d.geometry.PointCloud()
-        #face_landmarks_pcd = o3d.geometry.PointCloud()
-        #lhand_landmarks_pcd = o3d.geometry.PointCloud()
-        #rhand_landmarks_pcd = o3d.geometry.PointCloud()
-        pose_landmarks_pcd.points = o3d.utility.Vector3dVector(pose_3d_points)
-        face_landmarks_pcd.points = o3d.utility.Vector3dVector(face_3d_points)
-        lhand_landmarks_pcd.points = o3d.utility.Vector3dVector(lhand_3d_points)
-        rhand_landmarks_pcd.points = o3d.utility.Vector3dVector(rhand_3d_points)
-        pose_landmarks_pcd.colors = o3d.utility.Vector3dVector(pose_3d_colors)
-        face_landmarks_pcd.colors = o3d.utility.Vector3dVector(face_3d_colors)
-        lhand_landmarks_pcd.colors = o3d.utility.Vector3dVector(lhand_3d_colors)
-        rhand_landmarks_pcd.colors = o3d.utility.Vector3dVector(rhand_3d_colors)
+        #holistic_landmarks_pcd = o3d.geometry.PointCloud()
+        holistic_landmarks_pcd.points = o3d.utility.Vector3dVector(holistic_3d_points)
+        holistic_landmarks_pcd.colors = o3d.utility.Vector3dVector(holistic_3d_colors)
 
-        return pose_landmarks_pcd, face_landmarks_pcd, lhand_landmarks_pcd, rhand_landmarks_pcd
+        return holistic_landmarks_pcd
 
-# Create an Open3D visualizer(s)
-vis_holistic = o3d.visualization.Visualizer()
-vis_holistic.create_window(window_name="MediaPipe Holistic pointcloud",width=640, height=480)
-#vis_face = o3d.visualization.Visualizer()
-#vis_face.create_window(window_name="MediaPipe Face pointcloud",width=640, height=480)
-#vis_hand = o3d.visualization.Visualizer()
-#vis_hand.create_window(window_name="MediaPipe Hand pointcloud",width=640, height=480)
-ctr_holistic = vis_holistic.get_view_control()
-pcp = o3d.io.read_pinhole_camera_parameters("asl_selfie_camera.json")
-print("[INFO] Pinhold Camera parameters = ",pcp)
-print("[INFO]    Extrinsic = ",pcp.extrinsic)
-print("[INFO]    Intrinsic = ",pcp.intrinsic)
-print("[INFO]    Intrinsic Matrix = ",pcp.intrinsic.intrinsic_matrix)
-
-
-vis_holistic.add_geometry(pose_landmarks_pcd)
-vis_holistic.add_geometry(face_landmarks_pcd)
-vis_holistic.add_geometry(lhand_landmarks_pcd)
-vis_holistic.add_geometry(rhand_landmarks_pcd)
-#vis_face.add_geometry(face_landmarks_pcd)
-#vis_hand.add_geometry(lhand_landmarks_pcd)
-#vis_hand.add_geometry(rhand_landmarks_pcd)
-ctr_holistic.convert_from_pinhole_camera_parameters(pcp)
-#vis_holistic.run()
+first_time_flag=True
 
 with mp_holistic.Holistic(min_detection_confidence=0.5, min_tracking_confidence=0.5) as holistic:
     
@@ -321,7 +254,7 @@ with mp_holistic.Holistic(min_detection_confidence=0.5, min_tracking_confidence=
         # aspect ratio 1:1 - crop middle 480x480 from 640x480
         #frame = frame[:,80:560,:]
         # aspect ratio 4:3 - crop middle 360x480 from 640x480
-        frame = frame[:,140:500,:]
+        #frame = frame[:,140:500,:]
         # aspect ratio 16:9 - crop middle 228480 from 640x480
         #frame = frame[:,126:354,:]
         
@@ -435,43 +368,31 @@ with mp_holistic.Holistic(min_detection_confidence=0.5, min_tracking_confidence=
         output = cv2.hconcat([image_landmarks,tframe])
         cv2.imshow('mediapipe_holistic_viewer',output)
 
-        pose_landmarks_pcd, face_landmarks_pcd, lhand_landmarks_pcd, rhand_landmarks_pcd = create_landmark_pointcloud( 
+        holistic_landmarks_pcd = create_landmark_pointcloud( 
             results.pose_landmarks, results.face_landmarks, 
             results.left_hand_landmarks, results.right_hand_landmarks,
             use_zoffset=use_zoffset,
-            view_pointcloud=view_pointcloud,
-            image_width=IMAGE_WIDTH if denormalize_pointcloud==True else 1.0,
-            image_height=IMAGE_HEIGHT if denormalize_pointcloud==True else 1.0
+            image_width=IMAGE_WIDTH,
+            image_height=IMAGE_HEIGHT
             )
 
-
         # Open3D visualization
-        vis_holistic.add_geometry(pose_landmarks_pcd)
-        vis_holistic.add_geometry(face_landmarks_pcd)
-        vis_holistic.add_geometry(lhand_landmarks_pcd)
-        vis_holistic.add_geometry(rhand_landmarks_pcd)
-        #vis_face.add_geometry(face_landmarks_pcd)
-        #vis_hand.add_geometry(lhand_landmarks_pcd)
-        #vis_hand.add_geometry(rhand_landmarks_pcd)
-        ctr_holistic.convert_from_pinhole_camera_parameters(pcp)
-        vis_holistic.run()
-        #vis_face.run()
-        #vis_hand.run()
-
+        if first_time_flag == True:
+            vis_holistic.add_geometry(holistic_landmarks_pcd)
+            vis_holistic.run()
+            first_time_flag = False
+        else:
+            vis_holistic.update_geometry(holistic_landmarks_pcd)
+            vis_holistic.poll_events()
+            vis_holistic.update_renderer()
+        
+        
         c = cv2.waitKey(10)
         if c == ord('q'):
             break
         if c == ord('z'):
             use_zoffset = not use_zoffset
             print("[INFO] use_zoffset = ",use_zoffset)
-        if c == ord('d'):
-            denormalize_pointcloud = not denormalize_pointcloud
-            print("[INFO] denormalize_pointcloud = ",denormalize_pointcloud)
-        if c == ord('v'):
-            view_pointcloud = view_pointcloud + 1
-            if view_pointcloud > 2:
-                view_pointcloud = 0
-            print("[INFO] view_pointcloud (0=front, 1=top, 2=side) = ",view_pointcloud)                
 
 # Release camera
 cap.release()
@@ -481,5 +402,4 @@ cv2.destroyAllWindows()
 
 # Cleanup Open3d visualizer(s)
 vis_holistic.destroy_window()
-#vis_face.destroy_window()
-#vis_hand.destroy_window()
+
