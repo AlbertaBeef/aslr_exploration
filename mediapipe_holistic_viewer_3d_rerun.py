@@ -2,10 +2,11 @@
 #   https://github.com/nicknochnack/Full-Body-Estimation-using-Media-Pipe-Holistic/blob/main/Media%20Pipe%20Holistic%20Tutorial.ipynb
 #   https://github.com/nicknochnack/Body-Language-Decoder/blob/main/Body%20Language%20Decoder%20Tutorial.ipynb
 
-import mediapipe
-import cv2
 import numpy as np
+import cv2
 
+import mediapipe
+#from mediapipe.tasks.python.components.containers import NormalizedLandmark
 print("Mediapipe v" + mediapipe.__version__)
 
 mp_pose = mediapipe.solutions.pose
@@ -15,6 +16,29 @@ mp_drawing = mediapipe.solutions.drawing_utils
 mp_drawing_styles = mediapipe.solutions.drawing_styles
 
 mp_holistic = mediapipe.solutions.holistic
+
+import rerun as rr
+import rerun.blueprint as rrb
+
+#def convert_landmarks_to_3d(hand_landmarks: list[list[NormalizedLandmark]]) -> list[tuple[float, float, float]]:
+#    return [(lm.x, lm.y, lm.z) for hand_landmark in hand_landmarks for lm in hand_landmark]
+def convert_landmarks_to_3d(hand_landmarks):
+    points = []
+    for lm in hand_landmarks.landmark:
+        points.append((lm.x, lm.y, lm.z))
+    return points
+
+#def convert_landmarks_to_image_coordinates(
+#    hand_landmarks: list[list[NormalizedLandmark]],
+#    width: int,
+#    height: int,
+#) -> list[tuple[int, int]]:
+#    return [(int(lm.x * width), int(lm.y * height)) for hand_landmark in hand_landmarks for lm in hand_landmark]
+def convert_landmarks_to_image_coordinates( hand_landmarks, width, height):
+    coordinates = []
+    for lm in hand_landmarks.landmark:
+        coordinates.append((int(lm.x * width), int(lm.y * height)))
+    return coordinates
 
 # Reference:
 #   https://github.com/google-ai-edge/mediapipe/blob/master/mediapipe/python/solutions/face_mesh.py
@@ -142,8 +166,6 @@ def create_landmark_tframe( pose_landmarks, face_landmarks, left_hand_landmarks,
         return holistic_xyz_frame
 
 
-
-
 #
 # Capture live feed to view landmarks
 #
@@ -177,6 +199,50 @@ IMAGE_HEIGHT = 480
 #TFRAME_HEIGHT = NLANDMARKS*4
 TFRAME_WIDTH  = IMAGE_WIDTH
 TFRAME_HEIGHT = IMAGE_HEIGHT
+
+# Init rerun GUI
+rr.init("MediaPipe Holistic Viewer",recording_id="new_run", spawn=True)
+my_blueprint = rrb.Blueprint(
+    rrb.Horizontal(
+        rrb.Vertical(
+            rrb.Spatial3DView(name="Left Hand 3D", origin="lhand3d"),
+            rrb.Spatial2DView(name="Left Hand 2D", origin="lhand2d")
+        ),
+        rrb.Vertical(
+            rrb.Spatial2DView(name="Camera Input", origin="camera"),
+            #rrb.Spatial2DView(name="Annotated Output", contents=["camera/**", "lhand2d/**", "rhand2d/**"])
+            rrb.Spatial2DView(name="Annotated Output", origin="output")
+        ),
+        rrb.Vertical(
+            rrb.Spatial3DView(name="Right Hand 3D", origin="rhand3d"),
+            rrb.Spatial2DView(name="Right Hand 2D", origin="rhand2d")
+        )
+    ),
+)
+rr.send_blueprint(my_blueprint)
+
+rr.log("lhand2d",rr.ViewCoordinates.RIGHT_HAND_Y_DOWN)
+
+rr.log(
+    "/",
+    rr.AnnotationContext(
+        rr.ClassDescription(
+            info=rr.AnnotationInfo(id=0, label="O"),
+            keypoint_connections=mp_holistic.HAND_CONNECTIONS,
+        ),
+    ),
+    static=True,
+)
+rr.log("lhand3d", rr.ViewCoordinates.LEFT_HAND_Y_DOWN, static=True)
+
+rr.log("camera/video",rr.ViewCoordinates.RIGHT_HAND_Y_DOWN)
+rr.log("output/video",rr.ViewCoordinates.RIGHT_HAND_Y_DOWN)
+
+rr.log("rhand2d",rr.ViewCoordinates.RIGHT_HAND_Y_DOWN)
+
+rr.log("rhand3d", rr.ViewCoordinates.LEFT_HAND_Y_DOWN, static=True)
+
+frame_idx = 0
 
 use_zoffset = True
 print("[INFO] use_zoffset = ",use_zoffset)
@@ -285,7 +351,9 @@ with mp_holistic.Holistic(min_detection_confidence=0.5, min_tracking_confidence=
                                  landmark_drawing_spec=mp_drawing.DrawingSpec(color=(245,117,66), thickness=2, circle_radius=4),
                                  connection_drawing_spec=mp_drawing.DrawingSpec(color=(245,66,230), thickness=2, circle_radius=2)
                                  )                
-	
+
+        annotated_output = image_landmarks.copy()
+
         image_landmarks = cv2.putText(image_landmarks, 'Live Feed', (10,50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0,255,0), 2, cv2.LINE_AA)                 
         image_landmarks = image_landmarks.astype(np.float64)/256.0
 	
@@ -301,6 +369,87 @@ with mp_holistic.Holistic(min_detection_confidence=0.5, min_tracking_confidence=
         
         output = cv2.hconcat([image_landmarks,tframe])
         cv2.imshow('mediapipe_holistic_viewer',output)
+
+        # Rerun data logging
+        rr.set_time("frame_nr", sequence=frame_idx)
+        #rr.set_time("frame_time", duration=1e-9 * frame_time_nano)
+        rr.log("camera/video", rr.Image(frame, color_model="BGR").compress(jpeg_quality=75))
+        rr.log("output/video", rr.Image(annotated_output, color_model="BGR").compress(jpeg_quality=75))
+
+        # clear previous landmarks (if case there are none this time)
+        for log_key in ["lhand2d/points", "lhand2d/connections", "lhand3d/points", "rhand2d/points", "rhand2d/connections", "rhand3d/points"]:
+            rr.log(log_key, rr.Clear(recursive=True))
+
+        if left_hand_landmarks is not None:
+            left_hand_landmark_positions_3d = convert_landmarks_to_3d(left_hand_landmarks)
+            rr.log(
+                "lhand3d/points",
+                rr.Points3D(
+                    left_hand_landmark_positions_3d,
+                    radii=20,
+                    class_ids=0,
+                    keypoint_ids=list(range(len(left_hand_landmark_positions_3d)))
+                ),
+            )
+
+            # Convert normalized coordinates to image coordinates
+            points = convert_landmarks_to_image_coordinates(left_hand_landmarks, IMAGE_WIDTH, IMAGE_HEIGHT)
+
+            # Log points to the image and Hand Entity
+            #rr.log("lhand2d/points", rr.Points2D(points, radii=10, colors=[255, 0, 0]))
+            rr.log(
+                "lhand2d/points",
+                rr.Points2D(
+                    points, 
+                    radii=2, 
+                    colors=[255, 0, 0],
+                    keypoint_ids=list(range(len(points)))
+                )
+            )
+
+            # Obtain hand connections from MediaPipe
+            mp_hands_connections = mp_holistic.HAND_CONNECTIONS
+            points1 = [points[connection[0]] for connection in mp_hands_connections]
+            points2 = [points[connection[1]] for connection in mp_hands_connections]
+
+            # Log connections to the image and Hand Entity [128, 128, 128]
+            rr.log("lhand2d/connections", rr.LineStrips2D(np.stack((points1, points2), axis=1), colors=[255, 165, 0]))
+
+        if right_hand_landmarks is not None:
+            right_hand_landmark_positions_3d = convert_landmarks_to_3d(right_hand_landmarks)
+            rr.log(
+                "rhand3d/points",
+                rr.Points3D(
+                    right_hand_landmark_positions_3d,
+                    radii=20,
+                    class_ids=0,
+                    keypoint_ids=list(range(len(right_hand_landmark_positions_3d)))
+                ),
+            )
+
+            # Convert normalized coordinates to image coordinates
+            points = convert_landmarks_to_image_coordinates(right_hand_landmarks, IMAGE_WIDTH, IMAGE_HEIGHT)
+
+            # Log points to the image and Hand Entity
+            #rr.log("rhand2d/points", rr.Points2D(points, radii=10, colors=[255, 0, 0]))
+            rr.log(
+                "rhand2d/points",
+                rr.Points2D(
+                    points, 
+                    radii=2, 
+                    colors=[255, 0, 0],
+                    keypoint_ids=list(range(len(points)))
+                )
+            )
+            # Obtain hand connections from MediaPipe
+            mp_hands_connections = mp_holistic.HAND_CONNECTIONS
+            points1 = [points[connection[0]] for connection in mp_hands_connections]
+            points2 = [points[connection[1]] for connection in mp_hands_connections]
+
+            # Log connections to the image and Hand Entity [128, 128, 128]
+            rr.log("rhand2d/connections", rr.LineStrips2D(np.stack((points1, points2), axis=1), colors=[255, 165, 0]))
+
+        frame_idx = frame_idx + 1
 
         c = cv2.waitKey(10)
         if c == ord('q'):
