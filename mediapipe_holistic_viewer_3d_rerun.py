@@ -202,21 +202,27 @@ TFRAME_HEIGHT = IMAGE_HEIGHT
 
 # Init rerun GUI
 rr.init("MediaPipe Holistic Viewer",recording_id="new_run", spawn=True)
+#my_blueprint = rrb.Blueprint(
+#    rrb.Horizontal(
+#        rrb.Vertical(
+#            rrb.Spatial3DView(name="Left Hand 3D", origin="lhand3d"),
+#            rrb.Spatial2DView(name="Left Hand 2D", origin="lhand2d")
+#        ),
+#        rrb.Vertical(
+#            rrb.Spatial2DView(name="Camera Input", origin="camera"),
+#            rrb.Spatial2DView(name="Annotated Output", origin="output")
+#        ),
+#        rrb.Vertical(
+#            rrb.Spatial3DView(name="Right Hand 3D", origin="rhand3d"),
+#            rrb.Spatial2DView(name="Right Hand 2D", origin="rhand2d")
+#        )
+#    ),
+#)
 my_blueprint = rrb.Blueprint(
     rrb.Horizontal(
-        rrb.Vertical(
-            rrb.Spatial3DView(name="Left Hand 3D", origin="lhand3d"),
-            rrb.Spatial2DView(name="Left Hand 2D", origin="lhand2d")
-        ),
-        rrb.Vertical(
-            rrb.Spatial2DView(name="Camera Input", origin="camera"),
-            #rrb.Spatial2DView(name="Annotated Output", contents=["camera/**", "lhand2d/**", "rhand2d/**"])
-            rrb.Spatial2DView(name="Annotated Output", origin="output")
-        ),
-        rrb.Vertical(
-            rrb.Spatial3DView(name="Right Hand 3D", origin="rhand3d"),
-            rrb.Spatial2DView(name="Right Hand 2D", origin="rhand2d")
-        )
+        rrb.Spatial3DView(name="Left Hand 3D", origin="lhand3d"),
+        rrb.Spatial2DView(name="Camera Input (Annotated)", contents=["camera/**", "lhand2d/**", "rhand2d/**"]),
+        rrb.Spatial3DView(name="Right Hand 3D", origin="rhand3d"),
     ),
 )
 rr.send_blueprint(my_blueprint)
